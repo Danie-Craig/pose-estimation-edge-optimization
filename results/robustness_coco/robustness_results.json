@@ -1,0 +1,92 @@
+[
+  {
+    "condition": "clean",
+    "images_processed": 2693,
+    "avg_latency_ms": 70.47466437763289,
+    "avg_fps": 14.189496449980654,
+    "avg_persons_detected": 2.76717415521723,
+    "avg_keypoint_confidence": 0.563194130477244,
+    "detection_rate": 0.9517266988488674,
+    "images_with_detections": 2563
+  },
+  {
+    "condition": "motion_blur_light",
+    "images_processed": 2693,
+    "avg_latency_ms": 69.70914517305461,
+    "avg_fps": 14.345320079847145,
+    "avg_persons_detected": 1.180839212773858,
+    "avg_keypoint_confidence": 0.4987973261669625,
+    "detection_rate": 0.8017081321945785,
+    "images_with_detections": 2159
+  },
+  {
+    "condition": "motion_blur_heavy",
+    "images_processed": 2693,
+    "avg_latency_ms": 68.69161970069999,
+    "avg_fps": 14.55781657729363,
+    "avg_persons_detected": 0.8024507983661344,
+    "avg_keypoint_confidence": 0.38912045381847704,
+    "detection_rate": 0.6698848867434088,
+    "images_with_detections": 1804
+  },
+  {
+    "condition": "low_light_moderate",
+    "images_processed": 2693,
+    "avg_latency_ms": 81.96722801968411,
+    "avg_fps": 12.19999778155062,
+    "avg_persons_detected": 2.578165614556257,
+    "avg_keypoint_confidence": 0.5562383255792823,
+    "detection_rate": 0.9357593761604159,
+    "images_with_detections": 2520
+  },
+  {
+    "condition": "low_light_severe",
+    "images_processed": 2693,
+    "avg_latency_ms": 83.82441174376768,
+    "avg_fps": 11.929698988604589,
+    "avg_persons_detected": 2.0646119569253623,
+    "avg_keypoint_confidence": 0.5289815473350942,
+    "detection_rate": 0.8952840698106201,
+    "images_with_detections": 2411
+  },
+  {
+    "condition": "overexposure",
+    "images_processed": 2693,
+    "avg_latency_ms": 86.71607499108228,
+    "avg_fps": 11.531887255077425,
+    "avg_persons_detected": 2.403267731154846,
+    "avg_keypoint_confidence": 0.5482454196778765,
+    "detection_rate": 0.9064240623839585,
+    "images_with_detections": 2441
+  },
+  {
+    "condition": "noise_moderate",
+    "images_processed": 2693,
+    "avg_latency_ms": 85.20611559189341,
+    "avg_fps": 11.736246782914499,
+    "avg_persons_detected": 1.6780542146305235,
+    "avg_keypoint_confidence": 0.5080830910523382,
+    "detection_rate": 0.8421834385443743,
+    "images_with_detections": 2268
+  },
+  {
+    "condition": "noise_heavy",
+    "images_processed": 2693,
+    "avg_latency_ms": 83.4104619405914,
+    "avg_fps": 11.98890375061397,
+    "avg_persons_detected": 0.8986260675826216,
+    "avg_keypoint_confidence": 0.4197220797766931,
+    "detection_rate": 0.6665428889714073,
+    "images_with_detections": 1795
+  },
+  {
+    "condition": "occlusion",
+    "images_processed": 2693,
+    "avg_latency_ms": 88.75105038135878,
+    "avg_fps": 11.267472280080636,
+    "avg_persons_detected": 2.241366505755663,
+    "avg_keypoint_confidence": 0.5293206737221215,
+    "detection_rate": 0.903082064611957,
+    "images_with_detections": 2432
+  }
+]

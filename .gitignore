@@ -1,0 +1,38 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Data (too large for git)
+data/coco/
+data/videos/
+*.mp4
+*.avi
+*.jpg
+*.png
+
+# Model weights (too large for git)
+checkpoints/
+models/onnx/
+*.pth
+*.onnx
+*.engine
+
+# Results - exclude images, keep JSON/markdown
+results/**/vis/
+results/**/*.jpg
+results/**/*.png
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Conda
+miniconda3/

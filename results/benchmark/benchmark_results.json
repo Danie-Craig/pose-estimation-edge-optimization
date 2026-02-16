@@ -1,0 +1,51 @@
+{
+  "model": "lightweight",
+  "test_image_shape": [
+    426,
+    640,
+    3
+  ],
+  "warmup_runs": 10,
+  "measurement_runs": 200,
+  "results": [
+    {
+      "name": "lightweight_pytorch_gpu",
+      "num_runs": 200,
+      "avg_latency_ms": 45.420812644897524,
+      "median_latency_ms": 45.029358499959926,
+      "p95_latency_ms": 48.09552904989686,
+      "p99_latency_ms": 51.66915282967238,
+      "min_latency_ms": 43.41461700096261,
+      "max_latency_ms": 53.90237499887007,
+      "std_latency_ms": 1.4349564550227474,
+      "fps": 22.016338805253362,
+      "memory_mb": 0.0390625
+    },
+    {
+      "name": "lightweight_onnx_gpu",
+      "num_runs": 200,
+      "avg_latency_ms": 4.376014179961203,
+      "median_latency_ms": 4.316446500524762,
+      "p95_latency_ms": 4.675722702268104,
+      "p99_latency_ms": 5.373424787831027,
+      "min_latency_ms": 4.178117000265047,
+      "max_latency_ms": 6.1289149998629,
+      "std_latency_ms": 0.21652578279035348,
+      "fps": 228.51845512275418,
+      "memory_mb": 0.03125
+    },
+    {
+      "name": "lightweight_onnx_cpu",
+      "num_runs": 200,
+      "avg_latency_ms": 35.62553035490055,
+      "median_latency_ms": 35.31922300135193,
+      "p95_latency_ms": 38.17906565036537,
+      "p99_latency_ms": 43.048655249694995,
+      "min_latency_ms": 33.5506900009932,
+      "max_latency_ms": 46.64004299775115,
+      "std_latency_ms": 1.6343291568948488,
+      "fps": 28.069757559761992,
+      "memory_mb": 0.0
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+[
+  {
+    "condition": "clean",
+    "frames_processed": 2,
+    "avg_latency_ms": 313.58436300001813,
+    "avg_fps": 3.18893451967164,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.8403149247169495,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "motion_blur_light",
+    "frames_processed": 2,
+    "avg_latency_ms": 77.2484969999141,
+    "avg_fps": 12.945235685311935,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.8416797140065363,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "motion_blur_heavy",
+    "frames_processed": 2,
+    "avg_latency_ms": 76.87109600010444,
+    "avg_fps": 13.008790716326477,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.8263846807620105,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "low_light_moderate",
+    "frames_processed": 2,
+    "avg_latency_ms": 77.0704010000145,
+    "avg_fps": 12.97514982437696,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.8230783266179703,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "low_light_severe",
+    "frames_processed": 2,
+    "avg_latency_ms": 81.06372949998786,
+    "avg_fps": 12.33597326656615,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.764593370346462,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "overexposure",
+    "frames_processed": 2,
+    "avg_latency_ms": 77.4756509999861,
+    "avg_fps": 12.90728102433343,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.8250033417168785,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "noise_moderate",
+    "frames_processed": 2,
+    "avg_latency_ms": 77.30746149991319,
+    "avg_fps": 12.93536200255551,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.7966559753698461,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "noise_heavy",
+    "frames_processed": 2,
+    "avg_latency_ms": 76.88537350009028,
+    "avg_fps": 13.00637500315747,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.7200770977665396,
+    "detection_rate": 1.0
+  },
+  {
+    "condition": "occlusion",
+    "frames_processed": 2,
+    "avg_latency_ms": 78.83782349995272,
+    "avg_fps": 12.684266962298873,
+    "avg_persons_detected": 2.5,
+    "avg_keypoint_confidence": 0.7791176003568313,
+    "detection_rate": 1.0
+  }
+]

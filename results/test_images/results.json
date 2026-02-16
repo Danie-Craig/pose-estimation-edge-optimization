@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "model": "lightweight",
+    "total_frames": 2,
+    "avg_latency_ms": 304.90849150010035,
+    "median_latency_ms": 304.90849150010035,
+    "min_latency_ms": 119.85548699976789,
+    "max_latency_ms": 489.9614960004328,
+    "avg_fps": 3.279672517745118,
+    "avg_persons_per_frame": 2.5
+  },
+  "frames": [
+    {
+      "frame_id": 0,
+      "source": "data/test_image1.jpg",
+      "num_persons": 1,
+      "inference_time_ms": 489.9614960004328,
+      "persons": [
+        {
+          "person_id": 0,
+          "mean_confidence": 0.8165582874241997,
+          "bbox_score": 0.8900941014289856
+        }
+      ]
+    },
+    {
+      "frame_id": 1,
+      "source": "data/test_image2.jpg",
+      "num_persons": 4,
+      "inference_time_ms": 119.85548699976789,
+      "persons": [
+        {
+          "person_id": 0,
+          "mean_confidence": 0.8312520262073068,
+          "bbox_score": 0.8119471073150635
+        },
+        {
+          "person_id": 1,
+          "mean_confidence": 0.8658759190755732,
+          "bbox_score": 0.8106603622436523
+        },
+        {
+          "person_id": 2,
+          "mean_confidence": 0.8159236136604758,
+          "bbox_score": 0.6621952652931213
+        },
+        {
+          "person_id": 3,
+          "mean_confidence": 0.8719647772171918,
+          "bbox_score": 0.6184297204017639
+        }
+      ]
+    }
+  ]
+}
