@@ -1,7 +1,8 @@
 """Core pose estimation module using MMPose."""
 
-from dataclasses import dataclass, field
-from typing import Any
+
+from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 import yaml
@@ -32,13 +33,19 @@ class FramePoseResult:
 class PoseEstimator:
     """Wrapper around MMPose for multi-person pose estimation."""
 
-    def __init__(self, config_path: str = "configs/model_config.yaml",
-                 model_variant: str = "lightweight") -> None:
+    def __init__(
+        self,
+        config_path: str = "configs/model_config.yaml",
+        model_variant: str = "lightweight",
+        device: Optional[str] = None,   # ← NEW: overrides config device if provided
+    ) -> None:
         """Initialize pose estimator.
 
         Args:
-            config_path: Path to model configuration YAML.
-            model_variant: Which model to use ('lightweight' or 'accurate').
+            config_path:    Path to model configuration YAML.
+            model_variant:  Which model to use ('lightweight' or 'accurate').
+            device:         Device to run on ('cuda', 'cuda:0', 'cpu').
+                            If None, falls back to the value in model_config.yaml.
         """
         with open(config_path) as f:
             self.config = yaml.safe_load(f)
@@ -46,27 +53,30 @@ class PoseEstimator:
         model_config = self.config["models"][model_variant]
         inference_config = self.config["inference"]
 
+        # Use caller-supplied device, otherwise fall back to config
+        target_device = device if device is not None else inference_config["device"]
+
         print(f"Loading model: {model_config['name']}")
-        print(f"Description: {model_config['description']}")
-        print(f"Device: {inference_config['device']}")
+        print(f"Description:   {model_config['description']}")
+        print(f"Device:        {target_device}")
 
         # Initialize MMPose inferencer
         self.inferencer = MMPoseInferencer(
             pose2d=model_config["config"],
-            device=inference_config["device"],
+            device=target_device,       # ← uses target_device, not hardcoded config value
         )
 
         self.confidence_threshold = inference_config["confidence_threshold"]
         self.bbox_threshold = inference_config["bbox_threshold"]
         self.model_name = model_config["name"]
 
-        print(f"Model loaded successfully.")
+        print("Model loaded successfully.")
 
     def predict(self, image: np.ndarray, frame_id: int = 0) -> FramePoseResult:
         """Run pose estimation on a single image.
 
         Args:
-            image: BGR image as numpy array (H, W, 3).
+            image:    BGR image as numpy array (H, W, 3).
             frame_id: Frame identifier for tracking.
 
         Returns:
@@ -76,7 +86,6 @@ class PoseEstimator:
 
         start = time.perf_counter()
 
-        # Run inference
         result_generator = self.inferencer(
             image,
             show=False,
@@ -85,18 +94,16 @@ class PoseEstimator:
         results = list(result_generator)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
-        # Parse results into structured format
         persons = []
         if results and "predictions" in results[0]:
             predictions = results[0]["predictions"][0]  # First (only) frame
 
             for i, pred in enumerate(predictions):
-                keypoints = np.array(pred["keypoints"])         # (17, 2)
-                scores = np.array(pred["keypoint_scores"])      # (17,)
+                keypoints = np.array(pred["keypoints"])
+                scores = np.array(pred["keypoint_scores"])
                 bbox = np.array(pred["bbox"][0]) if "bbox" in pred else np.zeros(4)
                 bbox_score = pred.get("bbox_score", 0.0)
 
-                # Filter by bbox confidence
                 if bbox_score < self.bbox_threshold:
                     continue
 
@@ -118,12 +125,15 @@ class PoseEstimator:
             inference_time_ms=elapsed_ms,
         )
 
-    def predict_batch(self, images: list[np.ndarray],
-                      start_frame_id: int = 0) -> list[FramePoseResult]:
+    def predict_batch(
+        self,
+        images: list[np.ndarray],
+        start_frame_id: int = 0,
+    ) -> list[FramePoseResult]:
         """Run pose estimation on multiple images.
 
         Args:
-            images: List of BGR images.
+            images:         List of BGR images.
             start_frame_id: Frame ID for the first image.
 
         Returns:
