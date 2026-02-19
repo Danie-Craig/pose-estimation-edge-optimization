@@ -9,10 +9,6 @@ build/
 # Data (too large for git)
 data/coco/
 data/videos/
-*.mp4
-*.avi
-*.jpg
-*.png
 
 # Model weights (too large for git)
 checkpoints/
@@ -22,9 +18,6 @@ models/onnx/
 *.engine
 
 # Results - exclude images, keep JSON/markdown
-results/**/vis/
-results/**/*.jpg
-results/**/*.png
 
 # IDE
 .vscode/
