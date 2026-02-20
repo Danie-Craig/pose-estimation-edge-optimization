@@ -57,13 +57,37 @@ real-time threshold on the full detect+pose pipeline — achieving **54.24 FPS
 (2.52× over PyTorch baseline)** by activating the T4's dedicated Tensor Cores 
 for FP16 matrix multiplication.
 
+## Architecture
+
+The pipeline consists of two sequential deep learning models running in series:
+
+```
+Input Image → [RTMDet-m] → Person Bounding Boxes → [RTMPose-m] → 17 Keypoints per Person
+```
+
+### Stage 1: Person Detection (RTMDet-m)
+- **Task**: Locate all people in the frame as bounding boxes
+- **Architecture**: Single-stage object detector with CSPNeXt backbone
+- **Output**: Bounding boxes with confidence scores per detected person
+- **Checkpoint**: `rtmdet_m_8xb32-100e_coco-obj365-person`
+
+### Stage 2: Pose Estimation (RTMPose-m)
+- **Task**: Predict 17 keypoint locations per detected person
+- **Architecture**: SimCC-based pose estimator with CSPNeXt backbone
+- **Keypoints**: COCO 17-point skeleton (nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles)
+- **Input size**: 192×256 pixels (per cropped person)
+- **Checkpoint**: `rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192`
+
+### Framework
+- **MMPose 1.3.2** — model loading, inference pipeline, visualization
+- **MMDet 3.2.0** — person detector
+- **ONNX Runtime 1.23.2** — optimized GPU/CPU inference
+- **TensorRT** (via ONNX Runtime TensorrtExecutionProvider) — FP16 acceleration
+
 ## Robustness Evaluation
 
 Evaluated on **2,693 person images** from COCO val2017 across 9 conditions
 to simulate real-world deployment challenges.
-
-> **Note**: Robustness evaluation was run offline for analysis purposes.
-> GPU inference performance is reported in the Performance Benchmark section above.
 
 | Condition | FPS (GPU) | Avg Confidence | Detection Rate | Images Detected |
 |---|---|---|---|---|
@@ -77,9 +101,9 @@ to simulate real-world deployment challenges.
 | Noise Heavy | 11.99 | 0.420 | **66.7%** | 1795 / 2693 |
 | Motion Blur Heavy | 14.56 | 0.389 | **67.0%** | 1804 / 2693 |
 
-**Key finding**: The model maintains **>90% detection rate** under lighting 
-variations and occlusion. Motion blur and heavy noise are the primary failure 
-modes, consistent with published robustness benchmarks (COCO-C).
+**Key finding**: The model maintains **~90% detection rate** under all lighting 
+and occlusion conditions. Motion blur and heavy noise are the primary failure 
+modes, dropping to **~67% detection rate** under severe degradation.
 
 ### Visualizations
 
@@ -195,3 +219,5 @@ modes, consistent with published robustness benchmarks (COCO-C).
 </table>
 
 </details>
+
+
