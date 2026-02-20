@@ -220,4 +220,267 @@ modes, dropping to **~67% detection rate** under severe degradation.
 
 </details>
 
+## Failure Analysis
 
+Two conditions cause significant performance degradation — **heavy motion blur** (67.0% 
+detection rate) and **heavy noise** (66.7%) — both dropping ~28 percentage points below 
+the clean baseline (95.2%).
+
+### Primary Failure Mode 1: Motion Blur
+
+| Metric | Clean | Motion Blur Light | Motion Blur Heavy |
+|---|---|---|---|
+| Detection Rate | 95.2% | 80.2% | **67.0%** |
+| Avg Confidence | 0.563 | 0.499 | **0.389** |
+| Images Detected | 2563 / 2693 | 2159 / 2693 | **1804 / 2693** |
+
+**Why it fails**: RTMDet-m was trained on static COCO images without motion blur 
+augmentation. Heavy blur destroys the edge features the detector relies on for 
+person localization. When the detector misses a person entirely, RTMPose never 
+runs — there is no bounding box to crop and feed into the pose stage.
+
+### Primary Failure Mode 2: Heavy Noise
+
+| Metric | Clean | Noise Moderate | Noise Heavy |
+|---|---|---|---|
+| Detection Rate | 95.2% | 84.2% | **66.7%** |
+| Avg Confidence | 0.563 | 0.508 | **0.420** |
+| Images Detected | 2563 / 2693 | 2268 / 2693 | **1795 / 2693** |
+
+**Why it fails**: Gaussian noise corrupts pixel-level features uniformly across the 
+image. The detector's confidence scores drop below the 0.5 person detection threshold, 
+causing valid persons to be filtered out entirely. Unlike motion blur (which degrades 
+directional edges), heavy noise corrupts all spatial frequencies simultaneously — 
+making it equally damaging to all feature scales.
+
+### Root Cause: Detector Bottleneck
+
+Both failure modes share a common root cause — the **RTMDet-m detector is the 
+bottleneck**, not RTMPose. RTMDet-m uses a **CSPNeXt backbone**, whose early 
+convolutional layers extract edge and texture features to locate people. Motion 
+blur degrades directional edges; heavy noise corrupts all spatial frequencies 
+simultaneously — both destroy the low-level features CSPNeXt depends on, causing 
+the detector to miss persons entirely before pose estimation can run.
+
+### Potential Mitigations
+
+- **Higher camera shutter speed** — reduces motion blur at the sensor level before inference
+- **Blur-aware frame filtering** — detect and skip heavily degraded frames rather than producing unreliable outputs
+- **Augmentation-based fine-tuning** — retrain RTMDet-m with motion blur and noise augmentation in the training pipeline
+- **Temporal smoothing** — use keypoint tracking (e.g., Kalman filter) to interpolate through missed detections across video frames
+
+## Installation & Setup
+
+### Prerequisites
+
+- Python 3.10
+- CUDA 12.2 compatible GPU (tested on NVIDIA Tesla T4)
+- Git
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Danie-Craig/pose-estimation-edge-optimization.git
+cd pose-estimation-edge-optimization
+```
+
+### 2. Create Virtual Environment
+```bash
+python3.10 -m venv venv
+source venv/bin/activate  # Linux
+```
+
+### 3. Install Dependencies
+```bash
+pip install --upgrade pip "setuptools<70"
+pip install -r requirements.txt
+pip install -e .
+```
+> **Note**: The `-e .` installs the `src/` package in editable mode so all
+> modules are importable without path configuration.
+
+### 4. Install MMPose Stack
+The OpenMMLab packages require mim for dependency resolution:
+```bash
+pip install openmim
+mim install mmengine
+mim install "mmdet==3.2.0"
+mim install "mmpose==1.3.2"
+```
+
+### 5. Export ONNX Models
+ONNX model files are excluded from the repository (too large for Git).
+Re-export them after cloning:
+```bash
+# Export RTMPose to ONNX
+python src/optimization/export_onnx.py --model lightweight
+
+# Export RTMDet detector to ONNX
+python src/optimization/export_detector_onnx.py --model lightweight
+```
+Exported models will be saved to `models/onnx/`.
+
+> **Note**: If ONNX export succeeds, `models/onnx/pose_lightweight_simplified.onnx` 
+> will be created. If only a `_info.json` file appears, the export fell back to 
+> PyTorch inference mode — the benchmark scripts still work via PyTorch.
+
+### 6. TensorRT
+TensorRT engines are generated automatically on first run when
+TensorrtExecutionProvider is available. No manual export needed —
+the engine cache will be saved to `models/trt_cache/`.
+
+> **Note**: COCO dataset, model checkpoints (`.pth`), ONNX models (`.onnx`),
+> and TensorRT engines (`.engine`) are excluded from the repository via
+> `.gitignore`. TensorRT kernel profile metadata (`.profile`) is committed
+> to `models/trt_cache/`. Model weights download automatically from MMPose
+> on first inference.
+
+## Usage
+
+### Verify Setup
+Confirm the environment is correctly installed before running anything:
+```bash
+python scripts/verify_setup.py
+```
+Expected output: `All checks passed. You're ready to start.`
+
+### Run Inference
+Run pose estimation on images or video:
+```bash
+# Image directory
+python scripts/run_inference.py --source data/ --output-dir results/inference
+
+# Video file
+python scripts/run_inference.py --source data/test_video1.mp4 --save-video --output-dir results/inference
+```
+
+Key arguments:
+- `--source`          — Directory of `.jpg` images, or `.mp4` video file (required)
+- `--model`           — `lightweight` (default) or `accurate`
+- `--output-dir`      — Where to save results (default: `results/inference`)
+- `--max-frames`      — Limit number of frames processed (default: all)
+- `--save-video`      — Save full annotated video as `.mp4` (video input only)
+- `--save-vis-count`  — Number of frames to save as individual `.jpg` images when processing video (default: `50`)
+
+**Output:**
+- `results/inference/visualizations/` — annotated `.jpg` frames (all frames for image input; first `--save-vis-count` frames for video input)
+- `results/inference/output_video.mp4` — full annotated video (only when `--source` is a video **and** `--save-video` is passed)
+- `results/inference/results.json` — latency and detection summary (always saved)
+
+### Reproduce Benchmark
+Reproduce the 8-configuration performance benchmark:
+```bash
+python scripts/run_benchmark.py --model lightweight --runs 200
+```
+
+Key arguments:
+- `--runs` — Number of measurement iterations (default: `100`)
+- `--warmup` — Warmup iterations before measurement (default: `10`)
+- `--test-images` — Image directory for benchmark input (default: `data/coco/val2017`)
+- `--output-dir` — Where to save results (default: `results/benchmark`)
+
+Output: `results/benchmark/benchmark_results.json` and `results/benchmark/benchmark_table.md`.
+
+> **Note**: TensorRT benchmarks (rows 7–8) require ONNX models from Step 5 and a GPU with TensorRT support. They will be skipped with a clear message if unavailable.
+
+### Reproduce Robustness Evaluation
+Reproduce the 9-condition robustness evaluation on COCO val2017:
+```bash
+python scripts/evaluate_robustness_filtered.py --max-images 2693 --output-dir results/robustness_coco
+```
+
+Key arguments:
+- `--max-images` — Number of person images to evaluate per condition (default: `2693`)
+- `--output-dir` — Where to save results and visualizations (default: `results/robustness_coco`)
+
+Output: Per-condition JSON results in `results/robustness_coco/robustness_results.json` and visualization images in `results/robustness_coco/vis/`.
+
+> **Note**: Requires COCO val2017 images at `data/coco/val2017/` and `person_images_list.txt` which is a 
+> pre-filtered list of the 2,693 val2017 images containing people, generated from  
+> `data/coco/person_keypoints_val2017.json` (excluded from the repository).
+
+## Repository Structure
+
+```
+pose-estimation-edge-optimization/
+├── configs/
+│   └── model_config.yaml                     # RTMPose-m / RTMDet-m config, thresholds, skeleton
+├── data/
+│   ├── coco/
+│   │   ├── val2017/                          # 5,000 COCO val images — not included in repo
+│   │   └── person_keypoints_val2017.json     # COCO keypoint annotations — not included in repo
+│   ├── test_image0.jpg                       # High-quality test images
+│   ├── test_image1.jpg
+│   ├── test_video1.mp4                       # Demo videos
+│   ├── test_video2.mp4
+│   ├── test_video3.mp4
+│   └── test_video4.mp4
+├── models/
+│   ├── onnx/
+│   │   └── detector_lightweight_simplified_meta.json   # Export metadata; .onnx files not in repo
+│   └── trt_cache/
+│       ├── detector_lightweight_simplified/
+│       │   └── *.profile                               # TensorRT kernel profile (committed)
+│       └── pose_lightweight_simplified/
+│           └── *.profile                               # TensorRT kernel profile (committed)
+├── results/
+│   ├── benchmark/
+│   │   ├── benchmark_results.json            # 8-configuration benchmark data
+│   │   └── benchmark_table.md                # Formatted benchmark table
+│   ├── robustness_coco/                      # 9-condition evaluation on 2,693 COCO person images
+│   │   ├── vis/                              # 5 sample visualizations per condition (45 total)
+│   │   └── robustness_results.json
+│   ├── robustness_images/                    # Early 2-image robustness test
+│   │   ├── vis/
+│   │   └── robustness_results.json
+│   ├── test_images/                          # Inference on custom test images
+│   │   ├── visualizations/
+│   │   └── results.json
+│   ├── test_video1/                          # Inference on demo videos
+│   │   ├── output_video.mp4
+│   │   └── results.json
+│   ├── test_video2/
+│   ├── test_video3/
+│   └── test_video4/
+├── scripts/
+│   ├── run_inference.py                      # Run pose estimation on images or video
+│   ├── run_benchmark.py                      # 8-configuration performance benchmark
+│   ├── evaluate_robustness_filtered.py       # 9-condition robustness on COCO person images
+│   ├── filter_person_images.py               # Filter COCO images containing people
+│   ├── verify_setup.py                       # Environment verification
+│   ├── evaluate_robustness.py                # Early 2-image robustness script
+│   ├── quick_test.py                         # Rapid single-image test
+│   └── test_data_loader.py                   # Data loader verification
+├── src/
+│   ├── data/
+│   │   ├── loader.py                         # Image, video, and webcam data loaders
+│   │   └── augmentations.py                  # 9 robustness augmentations
+│   ├── inference/
+│   │   └── pose_estimator.py                 # MMPose wrapper with structured outputs
+│   ├── optimization/
+│   │   ├── benchmark.py                      # Benchmarking framework with percentile metrics
+│   │   ├── export_onnx.py                    # RTMPose → ONNX export
+│   │   ├── export_detector_onnx.py           # RTMDet → ONNX export
+│   │   ├── onnx_inference.py                 # ONNX Runtime pose-only inference
+│   │   ├── onnx_full_pipeline.py             # ONNX full pipeline (detect + pose)
+│   │   └── tensorrt_inference.py             # TensorRT FP16 inference
+│   └── viz/
+│       └── pose_drawer.py                    # Skeleton visualization, bounding boxes, video writer
+├── .gitignore
+├── person_images_list.txt                    # Pre-filtered list of 2,693 COCO person images
+├── requirements.txt
+├── setup.py
+└── README.md
+```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Acknowledgements
+
+- **[MMPose](https://github.com/open-mmlab/mmpose)** — pose estimation framework and RTMPose-m model
+- **[MMDetection](https://github.com/open-mmlab/mmdetection)** — RTMDet-m person detector
+- **[RTMPose](https://arxiv.org/abs/2303.07399)** — Jiang et al., 2023 — the underlying pose estimation architecture
+- **[COCO Dataset](https://cocodataset.org/)** — Lin et al., 2014 — evaluation dataset (val2017, 2,693 person images)
+- **[ONNX Runtime](https://onnxruntime.ai/)** — cross-platform inference acceleration
+- **[TensorRT](https://developer.nvidia.com/tensorrt)** — NVIDIA FP16 inference optimization
