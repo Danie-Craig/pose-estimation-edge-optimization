@@ -15,10 +15,24 @@ achieving a **2.52× speedup** over baseline (21.57 FPS → 54.24 FPS).
 
 ### Pose Estimation on Real-World Scenes
 
-<video src="https://github.com/user-attachments/assets/44652a43-b30d-4a9a-8e12-6cdc93174957" width="49%" controls></video>
-<video src="https://github.com/user-attachments/assets/af042332-0bbf-4ae6-ba60-a11a8a9de2cc" width="49%" controls></video>
-<video src="https://github.com/user-attachments/assets/2e94ffad-993e-4dff-9dd6-3b6c6f4a5dd5" width="49%" controls></video>
-<video src="https://github.com/user-attachments/assets/56c1ba81-1d59-41c0-ac30-d5ad06b13854" width="49%" controls></video>
+<table>
+  <tr>
+    <td>
+      <video src="https://github.com/user-attachments/assets/44652a43-b30d-4a9a-8e12-6cdc93174957" width="100%" controls></video>
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/af042332-0bbf-4ae6-ba60-a11a8a9de2cc" width="100%" controls></video>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <video src="https://github.com/user-attachments/assets/2e94ffad-993e-4dff-9dd6-3b6c6f4a5dd5" width="100%" controls></video>
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/56c1ba81-1d59-41c0-ac30-d5ad06b13854" width="100%" controls></video>
+    </td>
+  </tr>
+</table>
 
 > All videos run the full RTMPose-m pipeline (person detection + pose estimation).
 > Keypoints show 17-point COCO skeleton format with per-person confidence scores.
