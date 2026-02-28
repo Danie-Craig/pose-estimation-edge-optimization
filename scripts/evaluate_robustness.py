@@ -1,6 +1,5 @@
 """Evaluate pose estimation robustness under challenging conditions.
 
-This directly addresses the job requirement:
 'Evaluate perception robustness under motion, occlusion, and lighting variability'
 """
 
