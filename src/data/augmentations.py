@@ -1,7 +1,6 @@
 """Image augmentations to simulate challenging real-world conditions.
 
-These simulate the conditions Dropzone specifically mentions:
-motion blur, occlusion, and lighting variability.
+These simulate the conditions: motion blur, occlusion, and lighting variability.
 """
 
 import cv2
